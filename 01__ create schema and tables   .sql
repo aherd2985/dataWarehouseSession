@@ -9,14 +9,31 @@ GO
 
 CREATE TABLE Stg.Contract
 (
-  Cnct_ID INT NOT NULL,
+  Cnct_ID INT IDENTITY(1,1) NOT NULL,
   Contract VARCHAR(50) NOT NULL,
   PRIMARY KEY (Cnct_ID)
 );
+GO
+
+CREATE TABLE Stg.AOR_Type
+(
+  AT_ID INT IDENTITY(1,1) NOT NULL,
+  AOR_Name VARCHAR(50) NOT NULL,
+  PRIMARY KEY (AT_ID)
+);
+GO
+
+CREATE TABLE Stg.Employees
+(
+  E_ID INT IDENTITY(1,1) NOT NULL,
+  EmployeeName VARCHAR(250) NOT NULL,
+  PRIMARY KEY (E_ID)
+);
+GO
 
 CREATE TABLE Stg.Revenue
 (
-  R_ID INT NOT NULL,
+  R_ID INT IDENTITY(1,1) NOT NULL,
   ContractAmount decimal(10,2) NOT NULL,
   BilledAmount decimal(10,2) NOT NULL,
   ReceivedAmount decimal(10,2) NOT NULL,
@@ -24,37 +41,45 @@ CREATE TABLE Stg.Revenue
   PRIMARY KEY (R_ID),
   FOREIGN KEY (Cnct_ID) REFERENCES Stg.Contract(Cnct_ID)
 );
+GO
 
 CREATE TABLE Stg.Cost
 (
-  C_ID INT NOT NULL,
+  C_ID INT IDENTITY(1,1) NOT NULL,
   CostType INT NOT NULL,
   CostAmount decimal(10,2) NOT NULL,
   Cnct_ID INT NOT NULL,
   PRIMARY KEY (C_ID),
   FOREIGN KEY (Cnct_ID) REFERENCES Stg.Contract(Cnct_ID)
 );
-
-CREATE TABLE Fact.ContributionMargin
-(
-  CM_ID INT NOT NULL,
-  BilledAmount decimal(10,2) NOT NULL,
-  CostAmount decimal(10,2) NOT NULL,
-  Superintendent VARCHAR(250) NOT NULL,
-  ProjMgr VARCHAR(250) NOT NULL,
-  Cnct_ID INT NOT NULL,
-  PRIMARY KEY (CM_ID),
-  FOREIGN KEY (Cnct_ID) REFERENCES Stg.Contract(Cnct_ID)
-);
+GO
 
 CREATE TABLE Stg.OpsAOR
 (
-  OA_ID INT NOT NULL,
-  AOR_Type INT NOT NULL,
-  EmployeeName VARCHAR(250) NOT NULL,
+  OA_ID INT IDENTITY(1,1) NOT NULL,
   StartDt DATE NOT NULL,
   EndDt DATE NOT NULL,
   Cnct_ID INT NOT NULL,
+  AT_ID INT NOT NULL,
+  E_ID INT NOT NULL,
   PRIMARY KEY (OA_ID),
-  FOREIGN KEY (Cnct_ID) REFERENCES Stg.Contract(Cnct_ID)
+  FOREIGN KEY (Cnct_ID) REFERENCES Stg.Contract(Cnct_ID),
+  FOREIGN KEY (AT_ID) REFERENCES Stg.AOR_Type(AT_ID),
+  FOREIGN KEY (E_ID) REFERENCES Stg.Employees(E_ID)
 );
+GO
+
+CREATE TABLE Fact.ContributionMargin
+(
+  CM_ID INT IDENTITY(1,1) NOT NULL,
+  BilledAmount decimal(10,2) NOT NULL,
+  CostAmount decimal(10,2) NOT NULL,
+  Cnct_ID INT NOT NULL,
+  SuperIntendent INT NOT NULL,
+  ProjMgr INT NOT NULL,
+  PRIMARY KEY (CM_ID),
+  FOREIGN KEY (Cnct_ID) REFERENCES Stg.Contract(Cnct_ID),
+  FOREIGN KEY (SuperIntendent) REFERENCES Stg.Employees(E_ID),
+  FOREIGN KEY (ProjMgr) REFERENCES Stg.Employees(E_ID)
+);
+GO
