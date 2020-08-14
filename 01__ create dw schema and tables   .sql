@@ -79,8 +79,11 @@ CREATE TABLE Fact.ContributionMargin
   BilledAmount decimal(10,2) NOT NULL,
   CostAmount decimal(10,2) NOT NULL,
   DwCnct_ID INT NOT NULL,
-  SuperIntendent INT NOT NULL,
-  ProjMgr INT NOT NULL,
+  ContractName varchar(50),
+  SuperIntendentID INT NOT NULL,
+  SuperIntendentName varchar(250),
+  ProjMgrID INT NOT NULL,
+  ProjMgrName varchar(250),
   [ReportMth] date NOT NULL,
   PRIMARY KEY (CM_ID)
 );
