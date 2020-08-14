@@ -4,7 +4,7 @@ GO
 CREATE TABLE dbo.Contract
 (
   Cnct_ID INT IDENTITY(1,1) NOT NULL,
-  Contract VARCHAR(50) NOT NULL,
+  ContractName VARCHAR(50) NOT NULL,
   PRIMARY KEY (Cnct_ID)
 );
 GO
@@ -16,6 +16,7 @@ CREATE TABLE dbo.Revenue
   BilledAmount decimal(10,2) NOT NULL,
   ReceivedAmount decimal(10,2) NOT NULL,
   Cnct_ID INT NOT NULL,
+  [ReportMth] date NOT NULL,
   PRIMARY KEY (R_ID),
   FOREIGN KEY (Cnct_ID) REFERENCES dbo.Contract(Cnct_ID)
 );
@@ -27,6 +28,7 @@ CREATE TABLE dbo.Cost
   CostType INT NOT NULL,
   CostAmount decimal(10,2) NOT NULL,
   Cnct_ID INT NOT NULL,
+  [ReportMth] date NOT NULL,
   PRIMARY KEY (C_ID),
   FOREIGN KEY (Cnct_ID) REFERENCES dbo.Contract(Cnct_ID)
 );

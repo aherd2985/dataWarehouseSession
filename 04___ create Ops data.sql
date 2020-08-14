@@ -4,7 +4,7 @@ GO
 	Create Ops data
 */
 INSERT INTO [dbo].[Contract]
-           ([Contract])
+           ([ContractName])
      VALUES
            ('JC-01')
 GO

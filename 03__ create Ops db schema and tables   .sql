@@ -4,7 +4,7 @@ GO
 CREATE TABLE dbo.Contract
 (
   Cnct_ID INT IDENTITY(1,1) NOT NULL,
-  Contract VARCHAR(50) NOT NULL,
+  ContractName VARCHAR(50) NOT NULL,
   PRIMARY KEY (Cnct_ID)
 );
 GO
