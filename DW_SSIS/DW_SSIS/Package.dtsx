@@ -11,8 +11,8 @@
   DTS:LocaleID="1033"
   DTS:ObjectName="Package"
   DTS:PackageType="5"
-  DTS:VersionBuild="6"
-  DTS:VersionGUID="{33452D20-95E8-45FE-AB3E-560CFB216509}">
+  DTS:VersionBuild="8"
+  DTS:VersionGUID="{7B7F0A66-FC56-40D8-82EE-AA63422C6DE4}">
   <DTS:Property
     DTS:Name="PackageFormatVersion">8</DTS:Property>
   <DTS:ConnectionManagers>
@@ -100,33 +100,142 @@
   <DTS:Variables />
   <DTS:Executables>
     <DTS:Executable
-      DTS:refId="Package\Reporting Tables"
+      DTS:refId="Package\Dimesional Tables"
       DTS:CreationName="STOCK:SEQUENCE"
       DTS:Description="Sequence Container"
       DTS:DTSID="{6D3F53F2-B9E4-4BD5-B1A5-3245A85ECF39}"
       DTS:ExecutableType="STOCK:SEQUENCE"
       DTS:LocaleID="-1"
-      DTS:ObjectName="Reporting Tables">
+      DTS:ObjectName="Dimesional Tables">
       <DTS:Variables />
       <DTS:Executables>
         <DTS:Executable
-          DTS:refId="Package\Reporting Tables\FactContributionMargin"
+          DTS:refId="Package\Dimesional Tables\DimAorTypes"
           DTS:CreationName="Microsoft.ExecuteSQLTask"
           DTS:Description="Execute SQL Task"
-          DTS:DTSID="{24AE9923-DEB0-4640-B5BC-08A9F595AE24}"
+          DTS:DTSID="{7243A795-13B4-443E-BCA1-AC1CEBC9D056}"
           DTS:ExecutableType="Microsoft.ExecuteSQLTask"
           DTS:LocaleID="-1"
-          DTS:ObjectName="FactContributionMargin"
+          DTS:ObjectName="DimAorTypes"
+          DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2019; © 2019 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+          DTS:ThreadHint="2">
+          <DTS:Variables />
+          <DTS:ObjectData>
+            <SQLTask:SqlTaskData
+              SQLTask:Connection="{7DFFAE59-0EC2-448B-9475-8DB507F9C034}"
+              SQLTask:SqlStatementSource="MERGE [Dim].[AOR_Type] AS TARGET&#xA;USING [Stg].[AOR_Type] AS SOURCE &#xA;ON (TARGET.[AT_ID] = SOURCE.[AT_ID]) &#xA;WHEN MATCHED AND TARGET.[AOR_Name] &lt;&gt; SOURCE.[AOR_Name] &#xA;THEN UPDATE SET &#xA;  TARGET.[AOR_Name] = SOURCE.[AOR_Name]&#xA;WHEN NOT MATCHED BY TARGET &#xA;THEN INSERT ([AT_ID], [AOR_Name]) &#xA;VALUES (SOURCE.[AT_ID], SOURCE.[AOR_Name])&#xA;WHEN NOT MATCHED BY SOURCE &#xA;THEN DELETE &#xA;OUTPUT $action, &#xA;DELETED.DAT_ID AS TargetDAT_ID, &#xA;DELETED.[AT_ID] AS TargetAT_ID,&#xA;DELETED.AOR_Name AS TargetAOR_Name,&#xA;INSERTED.DAT_ID AS SourceDAT_ID, &#xA;INSERTED.AT_ID AS SourceAT_ID, &#xA;INSERTED.AOR_Name AS SourceAOR_Name; " xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+          </DTS:ObjectData>
+        </DTS:Executable>
+        <DTS:Executable
+          DTS:refId="Package\Dimesional Tables\DimContract"
+          DTS:CreationName="Microsoft.ExecuteSQLTask"
+          DTS:Description="Execute SQL Task"
+          DTS:DTSID="{389F3687-7117-476F-BEB0-B39EABB6CF8D}"
+          DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+          DTS:LocaleID="-1"
+          DTS:ObjectName="DimContract"
           DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2019; © 2019 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
           DTS:ThreadHint="0">
           <DTS:Variables />
           <DTS:ObjectData>
             <SQLTask:SqlTaskData
               SQLTask:Connection="{7DFFAE59-0EC2-448B-9475-8DB507F9C034}"
-              SQLTask:SqlStatementSource="USE [dataWarehouse]&#xA;GO&#xA;&#xA;WITH RevCTE AS (&#xA;SELECT A.ActCnct_ID, B.ReportMth, SUM(B.BilledAmount) Revenue&#xA;  FROM [STG].[Contract] A LEFT JOIN&#xA;&#x9;   [STG].[Revenue] B ON A.ActCnct_ID = B.ActCnct_ID&#xA;GROUP BY A.ActCnct_ID, B.ReportMth&#xA;)&#xA;, CA_CTE AS (&#xA;SELECT A.ActCnct_ID, B.ReportMth, SUM(B.CostAmount) Costs&#xA;  FROM [STG].[Contract] A LEFT JOIN&#xA;&#x9;   [STG].[Cost] B ON A.ActCnct_ID = B.ActCnct_ID&#xA;GROUP BY A.ActCnct_ID, B.ReportMth&#xA;)&#xA;, Dt_CTE AS (&#xA;SELECT ReportMth, ActCnct_ID&#xA;FROM [STG].[Revenue]&#xA;GROUP BY ReportMth, ActCnct_ID&#xA;UNION &#xA;SELECT ReportMth, ActCnct_ID&#xA;FROM [STG].[Cost]&#xA;GROUP BY ReportMth, ActCnct_ID&#xA;)&#xA;&#xA;&#xA;MERGE [Fact].[ContributionMargin] AS TARGET&#xA;USING (&#xA;SELECT A.[DwCnct_ID], B.ReportMth, B.Revenue, C.Costs, D.E_ID 'ProjMgr', E.E_ID 'SI', A.ContractName &#xA;, F.EmployeeName ProjMgrName, G.EmployeeName SuperintendentName&#xA;  FROM [STG].[Contract] A LEFT JOIN&#xA;&#x9;   Dt_CTE Q ON A.ActCnct_ID = Q.ActCnct_ID LEFT JOIN&#xA;&#x9;   RevCTE B ON A.ActCnct_ID = B.ActCnct_ID AND B.ReportMth = Q.ReportMth LEFT JOIN&#xA;&#x9;   CA_CTE C ON A.ActCnct_ID = C.ActCnct_ID AND C.ReportMth = Q.ReportMth LEFT JOIN&#xA;&#x9;   [STG].[OpsAOR] D ON A.OpsCnct_ID = D.OpsCnct_ID AND D.AT_ID = 1 LEFT JOIN&#xA;&#x9;   [STG].[OpsAOR] E ON A.OpsCnct_ID = E.OpsCnct_ID AND E.AT_ID = 2 LEFT JOIN&#xA;&#x9;   [STG].Employees F ON F.E_ID = D.E_ID LEFT JOIN&#xA;&#x9;   [STG].Employees G ON G.E_ID = E.E_ID &#xA;WHERE Q.ReportMth BETWEEN D.StartDt AND COALESCE(D.EndDt, Q.ReportMth)&#xA;AND Q.ReportMth BETWEEN E.StartDt AND COALESCE(E.EndDt, Q.ReportMth)&#xA;) AS SOURCE &#xA;ON (TARGET.[DwCnct_ID] = SOURCE.[DwCnct_ID] AND TARGET.ReportMth = SOURCE.ReportMth) &#xA;--When records are matched, update the records if there is any change&#xA;WHEN MATCHED AND TARGET.[BilledAmount] &lt;&gt; SOURCE.Revenue OR TARGET.[CostAmount] &lt;&gt; SOURCE.Costs  OR TARGET.[SuperIntendentID] &lt;&gt; SOURCE.SI OR TARGET.[ProjMgrID] &lt;&gt; SOURCE.[ProjMgr]&#xA;THEN UPDATE SET &#xA;  TARGET.[BilledAmount] = SOURCE.Revenue&#xA;, TARGET.[CostAmount] = SOURCE.Costs &#xA;, TARGET.[SuperIntendentID] = SOURCE.SI &#xA;, TARGET.[ProjMgrID] = SOURCE.ProjMgr &#xA;, TARGET.ContractName = SOURCE.ContractName &#xA;, TARGET.SuperIntendentName = SOURCE.SuperIntendentName &#xA;, TARGET.ProjMgrName = SOURCE.ProjMgrName &#xA;--When no records are matched, insert the incoming records from source table to target table&#xA;WHEN NOT MATCHED BY TARGET &#xA;THEN INSERT ([DwCnct_ID], [BilledAmount], [CostAmount], [SuperIntendentID], [ProjMgrID], ReportMth, ContractName, SuperIntendentName, ProjMgrName) &#xA;VALUES (SOURCE.[DwCnct_ID], SOURCE.Revenue, SOURCE.Costs, SOURCE.SI, SOURCE.[ProjMgr], SOURCE.ReportMth, SOURCE.ContractName, SOURCE.SuperIntendentName, SOURCE.ProjMgrName)&#xA;--When there is a row that exists in target and same record does not exist in source then delete this record target&#xA;WHEN NOT MATCHED BY SOURCE &#xA;THEN DELETE &#xA;--$action specifies a column of type nvarchar(10) in the OUTPUT clause that returns &#xA;--one of three values for each row: 'INSERT', 'UPDATE', or 'DELETE' according to the action that was performed on that row&#xA;OUTPUT $action, &#xA;DELETED.ReportMth AS TargetReportMth,&#xA;DELETED.[DwCnct_ID] AS TargetDwCnct_ID,&#xA;DELETED.[BilledAmount] AS TargetBilledAmount, &#xA;DELETED.CostAmount AS TargetCostAmount, &#xA;DELETED.SuperIntendentID AS TargetSuperIntendent, &#xA;DELETED.ProjMgrID AS TargetProjMgr, &#xA;INSERTED.ReportMth AS SourceReportMth, &#xA;INSERTED.DwCnct_ID AS SourceDwCnct_ID, &#xA;INSERTED.[BilledAmount] AS SourceRevenue, &#xA;INSERTED.CostAmount AS SourceCosts, &#xA;INSERTED.SuperIntendentID AS SourceSI, &#xA;INSERTED.ProjMgrID AS SourceProjMgr; &#xA;&#xA;SELECT @@ROWCOUNT;&#xA;GO&#xA;&#xA;&#xA;;&#xA;GO&#xA;&#xA;&#xA;" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+              SQLTask:SqlStatementSource="MERGE [Dim].[Contract] AS TARGET&#xA;USING [Stg].[Contract] AS SOURCE &#xA;ON (TARGET.[ContractName] = SOURCE.[ContractName]) &#xA;WHEN MATCHED AND TARGET.[ActCnct_ID] &lt;&gt; SOURCE.[ActCnct_ID] OR TARGET.[OpsCnct_ID] &lt;&gt; SOURCE.[ActCnct_ID]&#xA;THEN UPDATE SET &#xA;  TARGET.[ActCnct_ID] = SOURCE.[ActCnct_ID]&#xA;, TARGET.[OpsCnct_ID] = SOURCE.[OpsCnct_ID]&#xA;WHEN NOT MATCHED BY TARGET &#xA;THEN INSERT ([ActCnct_ID], [OpsCnct_ID], [ContractName]) &#xA;VALUES (SOURCE.[ActCnct_ID], SOURCE.[OpsCnct_ID], SOURCE.[ContractName])&#xA;WHEN NOT MATCHED BY SOURCE &#xA;THEN DELETE &#xA;OUTPUT $action, &#xA;DELETED.DCnct_ID AS TargetDCnct_ID, &#xA;DELETED.[ActCnct_ID] AS TargetActCnct_ID,&#xA;DELETED.[OpsCnct_ID] AS TargetOpsCnct_ID,&#xA;DELETED.[ContractName] AS TargetContractName,&#xA;INSERTED.DCnct_ID AS SourceDCnct_ID, &#xA;INSERTED.[ActCnct_ID] AS SourceActCnct_ID, &#xA;INSERTED.[OpsCnct_ID] AS SourceOpsCnct_ID, &#xA;INSERTED.[ContractName] AS SourceContractName; " xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+          </DTS:ObjectData>
+        </DTS:Executable>
+        <DTS:Executable
+          DTS:refId="Package\Dimesional Tables\DimEmployees"
+          DTS:CreationName="Microsoft.ExecuteSQLTask"
+          DTS:Description="Execute SQL Task"
+          DTS:DTSID="{258F8617-F5D6-4511-917A-62816F121A4E}"
+          DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+          DTS:LocaleID="-1"
+          DTS:ObjectName="DimEmployees"
+          DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2019; © 2019 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+          DTS:ThreadHint="1">
+          <DTS:Variables />
+          <DTS:ObjectData>
+            <SQLTask:SqlTaskData
+              SQLTask:Connection="{7DFFAE59-0EC2-448B-9475-8DB507F9C034}"
+              SQLTask:SqlStatementSource="MERGE [Dim].[Employees] AS TARGET&#xA;USING [Stg].[Employees] AS SOURCE &#xA;ON (TARGET.[E_ID] = SOURCE.[E_ID]) &#xA;WHEN MATCHED AND TARGET.[EmployeeName] &lt;&gt; SOURCE.[EmployeeName] &#xA;THEN UPDATE SET &#xA;  TARGET.[EmployeeName] = SOURCE.[EmployeeName]&#xA;WHEN NOT MATCHED BY TARGET &#xA;THEN INSERT ([E_ID], [EmployeeName]) &#xA;VALUES (SOURCE.[E_ID], SOURCE.[EmployeeName])&#xA;WHEN NOT MATCHED BY SOURCE &#xA;THEN DELETE &#xA;OUTPUT $action, &#xA;DELETED.DE_ID AS TargetDE_ID, &#xA;DELETED.[E_ID] AS TargetE_ID,&#xA;DELETED.EmployeeName AS TargetEmployeeName,&#xA;INSERTED.DE_ID AS SourceDE_ID, &#xA;INSERTED.E_ID AS SourceE_ID, &#xA;INSERTED.EmployeeName AS SourceEmployeeName; " xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
           </DTS:ObjectData>
         </DTS:Executable>
       </DTS:Executables>
+    </DTS:Executable>
+    <DTS:Executable
+      DTS:refId="Package\Fact Tables"
+      DTS:CreationName="STOCK:SEQUENCE"
+      DTS:Description="Sequence Container"
+      DTS:DTSID="{FD89C1AE-3144-476A-A429-88D3A7C0393F}"
+      DTS:ExecutableType="STOCK:SEQUENCE"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="Fact Tables">
+      <DTS:Variables />
+      <DTS:Executables>
+        <DTS:Executable
+          DTS:refId="Package\Fact Tables\FactContractTools"
+          DTS:CreationName="Microsoft.Pipeline"
+          DTS:Description="Data Flow Task"
+          DTS:DTSID="{B242E44D-B064-48C8-9C52-A0F0D4356713}"
+          DTS:ExecutableType="Microsoft.Pipeline"
+          DTS:LocaleID="-1"
+          DTS:ObjectName="FactContractTools"
+          DTS:TaskContact="Performs high-performance data extraction, transformation and loading;Microsoft Corporation; Microsoft SQL Server; (C) Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1">
+          <DTS:Variables />
+          <DTS:ObjectData>
+            <pipeline
+              version="1" />
+          </DTS:ObjectData>
+        </DTS:Executable>
+        <DTS:Executable
+          DTS:refId="Package\Fact Tables\FactContributionMargin"
+          DTS:CreationName="Microsoft.Pipeline"
+          DTS:Description="Data Flow Task"
+          DTS:DTSID="{49BD76E0-C1D0-4A9B-A4C6-A551FFA0DB7E}"
+          DTS:ExecutableType="Microsoft.Pipeline"
+          DTS:LocaleID="-1"
+          DTS:ObjectName="FactContributionMargin"
+          DTS:TaskContact="Performs high-performance data extraction, transformation and loading;Microsoft Corporation; Microsoft SQL Server; (C) Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1">
+          <DTS:Variables />
+          <DTS:ObjectData>
+            <pipeline
+              version="1" />
+          </DTS:ObjectData>
+        </DTS:Executable>
+        <DTS:Executable
+          DTS:refId="Package\Fact Tables\FactOpsAOR"
+          DTS:CreationName="Microsoft.Pipeline"
+          DTS:Description="Data Flow Task"
+          DTS:DTSID="{745FFDDE-FB28-43FA-B25E-BE2502882895}"
+          DTS:ExecutableType="Microsoft.Pipeline"
+          DTS:LocaleID="-1"
+          DTS:ObjectName="FactOpsAOR"
+          DTS:TaskContact="Performs high-performance data extraction, transformation and loading;Microsoft Corporation; Microsoft SQL Server; (C) Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1">
+          <DTS:Variables />
+          <DTS:ObjectData>
+            <pipeline
+              version="1" />
+          </DTS:ObjectData>
+        </DTS:Executable>
+      </DTS:Executables>
+      <DTS:PrecedenceConstraints>
+        <DTS:PrecedenceConstraint
+          DTS:refId="Package\Fact Tables.PrecedenceConstraints[Constraint]"
+          DTS:CreationName=""
+          DTS:DTSID="{EFE6D749-069F-4063-AF78-FBBBE8E3B9BA}"
+          DTS:From="Package\Fact Tables\FactContractTools"
+          DTS:LogicalAnd="True"
+          DTS:ObjectName="Constraint"
+          DTS:To="Package\Fact Tables\FactContributionMargin" />
+        <DTS:PrecedenceConstraint
+          DTS:refId="Package\Fact Tables.PrecedenceConstraints[Constraint 1]"
+          DTS:CreationName=""
+          DTS:DTSID="{1EB97EA2-7968-4237-BDA7-80DE00153845}"
+          DTS:From="Package\Fact Tables\FactOpsAOR"
+          DTS:LogicalAnd="True"
+          DTS:ObjectName="Constraint 1"
+          DTS:To="Package\Fact Tables\FactContributionMargin" />
+      </DTS:PrecedenceConstraints>
     </DTS:Executable>
     <DTS:Executable
       DTS:refId="Package\Staging"
@@ -2729,7 +2838,15 @@ ORDER BY [ContractName]</property>
       DTS:From="Package\Staging"
       DTS:LogicalAnd="True"
       DTS:ObjectName="Constraint"
-      DTS:To="Package\Reporting Tables" />
+      DTS:To="Package\Dimesional Tables" />
+    <DTS:PrecedenceConstraint
+      DTS:refId="Package.PrecedenceConstraints[Constraint 1]"
+      DTS:CreationName=""
+      DTS:DTSID="{21DEC887-1812-433F-8DD5-D94A9B86396E}"
+      DTS:From="Package\Dimesional Tables"
+      DTS:LogicalAnd="True"
+      DTS:ObjectName="Constraint 1"
+      DTS:To="Package\Fact Tables" />
   </DTS:PrecedenceConstraints>
   <DTS:DesignTimeProperties><![CDATA[<?xml version="1.0"?>
 <!--This CDATA section contains the layout information of the package. The section includes information such as (x,y) coordinates, width, and height.-->
@@ -2744,16 +2861,24 @@ ORDER BY [ContractName]</property>
       <GraphLayout
         Capacity="32" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph" xmlns:mssgle="clr-namespace:Microsoft.SqlServer.Graph.LayoutEngine;assembly=Microsoft.SqlServer.Graph" xmlns:assembly="http://schemas.microsoft.com/winfx/2006/xaml">
         <NodeLayout
-          Size="194,42"
-          Id="Package\Reporting Tables\FactContributionMargin"
-          TopLeft="96,57" />
+          Size="153,42"
+          Id="Package\Dimesional Tables\DimEmployees"
+          TopLeft="38,71" />
+        <NodeLayout
+          Size="146,42"
+          Id="Package\Dimesional Tables\DimAorTypes"
+          TopLeft="39,178" />
+        <NodeLayout
+          Size="140,42"
+          Id="Package\Dimesional Tables\DimContract"
+          TopLeft="38,294" />
         <ContainerLayout
           HeaderHeight="43"
           IsExpanded="True"
-          PanelSize="412,166"
-          Size="412,209"
-          Id="Package\Reporting Tables"
-          TopLeft="827,345" />
+          PanelSize="257,447"
+          Size="257,490"
+          Id="Package\Dimesional Tables"
+          TopLeft="796,215" />
         <NodeLayout
           Size="118,42"
           Id="Package\Staging\Accounting\StgCost"
@@ -3067,36 +3192,133 @@ ORDER BY [ContractName]</property>
         <ContainerLayout
           HeaderHeight="43"
           IsExpanded="True"
-          PanelSize="740,481"
-          Size="740,524"
+          PanelSize="740,457"
+          Size="740,500"
           Id="Package\Staging"
-          TopLeft="15,206" />
+          TopLeft="14,207" />
         <EdgeLayout
           Id="Package.PrecedenceConstraints[Constraint]"
-          TopLeft="755,468">
+          TopLeft="754,458.5">
           <EdgeLayout.Curve>
             <mssgle:Curve
               StartConnector="{assembly:Null}"
-              EndConnector="72,-18.5"
+              EndConnector="42,0"
               Start="0,0"
-              End="64.5,-18.5">
+              End="34.5,0">
               <mssgle:Curve.Segments>
                 <mssgle:SegmentCollection
                   Capacity="5">
                   <mssgle:LineSegment
-                    End="32,0" />
-                  <mssgle:CubicBezierSegment
-                    Point1="32,0"
-                    Point2="36,0"
-                    Point3="36,-4" />
+                    End="34.5,0" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <EdgeLabelCollection />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+        <NodeLayout
+          Size="169,42"
+          Id="Package\Fact Tables\FactContractTools"
+          TopLeft="38,26" />
+        <NodeLayout
+          Size="144,42"
+          Id="Package\Fact Tables\FactOpsAOR"
+          TopLeft="50,262" />
+        <NodeLayout
+          Size="194,42"
+          Id="Package\Fact Tables\FactContributionMargin"
+          TopLeft="291,308" />
+        <EdgeLayout
+          Id="Package\Fact Tables.PrecedenceConstraints[Constraint]"
+          TopLeft="122.5,68">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="265.5,240"
+              Start="0,0"
+              End="265.5,232.5">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
                   <mssgle:LineSegment
-                    End="36,-14.5" />
+                    End="0,116" />
                   <mssgle:CubicBezierSegment
-                    Point1="36,-14.5"
-                    Point2="36,-18.5"
-                    Point3="40,-18.5" />
+                    Point1="0,116"
+                    Point2="0,120"
+                    Point3="4,120" />
                   <mssgle:LineSegment
-                    End="64.5,-18.5" />
+                    End="261.5,120" />
+                  <mssgle:CubicBezierSegment
+                    Point1="261.5,120"
+                    Point2="265.5,120"
+                    Point3="265.5,124" />
+                  <mssgle:LineSegment
+                    End="265.5,232.5" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <EdgeLabelCollection />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+        <EdgeLayout
+          Id="Package\Fact Tables.PrecedenceConstraints[Constraint 1]"
+          TopLeft="194,283">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="97,46"
+              Start="0,0"
+              End="89.5,46">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="44.5,0" />
+                  <mssgle:CubicBezierSegment
+                    Point1="44.5,0"
+                    Point2="48.5,0"
+                    Point3="48.5,4" />
+                  <mssgle:LineSegment
+                    End="48.5,42" />
+                  <mssgle:CubicBezierSegment
+                    Point1="48.5,42"
+                    Point2="48.5,46"
+                    Point3="52.5,46" />
+                  <mssgle:LineSegment
+                    End="89.5,46" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <EdgeLabelCollection />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+        <ContainerLayout
+          HeaderHeight="43"
+          IsExpanded="True"
+          PanelSize="502,465"
+          Size="502,508"
+          Id="Package\Fact Tables"
+          TopLeft="1101,210" />
+        <EdgeLayout
+          Id="Package.PrecedenceConstraints[Constraint 1]"
+          TopLeft="1053,462">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="48,0"
+              Start="0,0"
+              End="40.5,0">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="40.5,0" />
                 </mssgle:SegmentCollection>
               </mssgle:Curve.Segments>
             </mssgle:Curve>
@@ -3112,15 +3334,15 @@ ORDER BY [ContractName]</property>
     design-time-name="Package\Staging\Accounting\StgCost">
     <LayoutInfo>
       <GraphLayout
-        Capacity="4" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph" xmlns:mssgle="clr-namespace:Microsoft.SqlServer.Graph.LayoutEngine;assembly=Microsoft.SqlServer.Graph" xmlns:assembly="http://schemas.microsoft.com/winfx/2006/xaml">
-        <NodeLayout
-          Size="149,42"
-          Id="Package\Staging\Accounting\StgCost\ODBC Source"
-          TopLeft="153,137" />
+        Capacity="4" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph" xmlns:mssgle="clr-namespace:Microsoft.SqlServer.Graph.LayoutEngine;assembly=Microsoft.SqlServer.Graph" xmlns:assembly="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:mssgm="clr-namespace:Microsoft.SqlServer.Graph.Model;assembly=Microsoft.SqlServer.Graph">
         <NodeLayout
           Size="169,42"
           Id="Package\Staging\Accounting\StgCost\ODBC Destination"
           TopLeft="231,297" />
+        <NodeLayout
+          Size="149,42"
+          Id="Package\Staging\Accounting\StgCost\ODBC Source"
+          TopLeft="153,137" />
         <EdgeLayout
           Id="Package\Staging\Accounting\StgCost.Paths[ODBC Source Output]"
           TopLeft="227.5,179">
@@ -3152,7 +3374,9 @@ ORDER BY [ContractName]</property>
             </mssgle:Curve>
           </EdgeLayout.Curve>
           <EdgeLayout.Labels>
-            <EdgeLabelCollection />
+            <mssgm:EdgeLabel
+              BoundingBox="0,0,0,0"
+              RelativePosition="Any" />
           </EdgeLayout.Labels>
         </EdgeLayout>
       </GraphLayout>
@@ -3188,7 +3412,7 @@ ORDER BY [ContractName]</property>
     design-time-name="Package\Staging\Accounting\StgRevenue">
     <LayoutInfo>
       <GraphLayout
-        Capacity="4" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph" xmlns:mssgle="clr-namespace:Microsoft.SqlServer.Graph.LayoutEngine;assembly=Microsoft.SqlServer.Graph" xmlns:assembly="http://schemas.microsoft.com/winfx/2006/xaml">
+        Capacity="4" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph" xmlns:mssgle="clr-namespace:Microsoft.SqlServer.Graph.LayoutEngine;assembly=Microsoft.SqlServer.Graph" xmlns:assembly="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:mssgm="clr-namespace:Microsoft.SqlServer.Graph.Model;assembly=Microsoft.SqlServer.Graph">
         <NodeLayout
           Size="149,42"
           Id="Package\Staging\Accounting\StgRevenue\ODBC Source"
@@ -3228,7 +3452,9 @@ ORDER BY [ContractName]</property>
             </mssgle:Curve>
           </EdgeLayout.Curve>
           <EdgeLayout.Labels>
-            <EdgeLabelCollection />
+            <mssgm:EdgeLabel
+              BoundingBox="0,0,0,0"
+              RelativePosition="Any" />
           </EdgeLayout.Labels>
         </EdgeLayout>
       </GraphLayout>
@@ -3264,11 +3490,15 @@ ORDER BY [ContractName]</property>
     design-time-name="Package\Staging\LoadStgContract">
     <LayoutInfo>
       <GraphLayout
-        Capacity="8" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph" xmlns:mssgle="clr-namespace:Microsoft.SqlServer.Graph.LayoutEngine;assembly=Microsoft.SqlServer.Graph" xmlns:assembly="http://schemas.microsoft.com/winfx/2006/xaml">
+        Capacity="8" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph" xmlns:mssgle="clr-namespace:Microsoft.SqlServer.Graph.LayoutEngine;assembly=Microsoft.SqlServer.Graph" xmlns:assembly="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:mssgm="clr-namespace:Microsoft.SqlServer.Graph.Model;assembly=Microsoft.SqlServer.Graph">
         <NodeLayout
           Size="169,42"
           Id="Package\Staging\LoadStgContract\ODBC Destination"
           TopLeft="272,396" />
+        <NodeLayout
+          Size="158,42"
+          Id="Package\Staging\LoadStgContract\ODBC Source 1"
+          TopLeft="500,86" />
         <NodeLayout
           Size="133,42"
           Id="Package\Staging\LoadStgContract\Merge Join"
@@ -3277,10 +3507,6 @@ ORDER BY [ContractName]</property>
           Size="149,42"
           Id="Package\Staging\LoadStgContract\ODBC Source"
           TopLeft="202,83" />
-        <NodeLayout
-          Size="158,42"
-          Id="Package\Staging\LoadStgContract\ODBC Source 1"
-          TopLeft="500,86" />
         <EdgeLayout
           Id="Package\Staging\LoadStgContract.Paths[ODBC Source Output1]"
           TopLeft="276.5,125">
@@ -3312,7 +3538,9 @@ ORDER BY [ContractName]</property>
             </mssgle:Curve>
           </EdgeLayout.Curve>
           <EdgeLayout.Labels>
-            <EdgeLabelCollection />
+            <mssgm:EdgeLabel
+              BoundingBox="0,0,0,0"
+              RelativePosition="Any" />
           </EdgeLayout.Labels>
         </EdgeLayout>
         <EdgeLayout
@@ -3346,7 +3574,9 @@ ORDER BY [ContractName]</property>
             </mssgle:Curve>
           </EdgeLayout.Curve>
           <EdgeLayout.Labels>
-            <EdgeLabelCollection />
+            <mssgm:EdgeLabel
+              BoundingBox="0,0,0,0"
+              RelativePosition="Any" />
           </EdgeLayout.Labels>
         </EdgeLayout>
         <EdgeLayout
@@ -3380,7 +3610,9 @@ ORDER BY [ContractName]</property>
             </mssgle:Curve>
           </EdgeLayout.Curve>
           <EdgeLayout.Labels>
-            <EdgeLabelCollection />
+            <mssgm:EdgeLabel
+              BoundingBox="0,0,0,0"
+              RelativePosition="Any" />
           </EdgeLayout.Labels>
         </EdgeLayout>
       </GraphLayout>
@@ -3429,7 +3661,7 @@ ORDER BY [ContractName]</property>
     design-time-name="Package\Staging\Operations\StgAOR">
     <LayoutInfo>
       <GraphLayout
-        Capacity="4" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph" xmlns:mssgle="clr-namespace:Microsoft.SqlServer.Graph.LayoutEngine;assembly=Microsoft.SqlServer.Graph" xmlns:assembly="http://schemas.microsoft.com/winfx/2006/xaml">
+        Capacity="4" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph" xmlns:mssgle="clr-namespace:Microsoft.SqlServer.Graph.LayoutEngine;assembly=Microsoft.SqlServer.Graph" xmlns:assembly="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:mssgm="clr-namespace:Microsoft.SqlServer.Graph.Model;assembly=Microsoft.SqlServer.Graph">
         <NodeLayout
           Size="149,42"
           Id="Package\Staging\Operations\StgAOR\ODBC Source"
@@ -3469,7 +3701,9 @@ ORDER BY [ContractName]</property>
             </mssgle:Curve>
           </EdgeLayout.Curve>
           <EdgeLayout.Labels>
-            <EdgeLabelCollection />
+            <mssgm:EdgeLabel
+              BoundingBox="0,0,0,0"
+              RelativePosition="Any" />
           </EdgeLayout.Labels>
         </EdgeLayout>
       </GraphLayout>
@@ -3505,15 +3739,15 @@ ORDER BY [ContractName]</property>
     design-time-name="Package\Staging\Operations\StgAORType">
     <LayoutInfo>
       <GraphLayout
-        Capacity="4" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph" xmlns:mssgle="clr-namespace:Microsoft.SqlServer.Graph.LayoutEngine;assembly=Microsoft.SqlServer.Graph" xmlns:assembly="http://schemas.microsoft.com/winfx/2006/xaml">
-        <NodeLayout
-          Size="149,42"
-          Id="Package\Staging\Operations\StgAORType\ODBC Source"
-          TopLeft="230,178" />
+        Capacity="4" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph" xmlns:mssgle="clr-namespace:Microsoft.SqlServer.Graph.LayoutEngine;assembly=Microsoft.SqlServer.Graph" xmlns:assembly="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:mssgm="clr-namespace:Microsoft.SqlServer.Graph.Model;assembly=Microsoft.SqlServer.Graph">
         <NodeLayout
           Size="169,42"
           Id="Package\Staging\Operations\StgAORType\ODBC Destination"
           TopLeft="329,288" />
+        <NodeLayout
+          Size="149,42"
+          Id="Package\Staging\Operations\StgAORType\ODBC Source"
+          TopLeft="230,178" />
         <EdgeLayout
           Id="Package\Staging\Operations\StgAORType.Paths[ODBC Source Output]"
           TopLeft="304.5,220">
@@ -3545,7 +3779,9 @@ ORDER BY [ContractName]</property>
             </mssgle:Curve>
           </EdgeLayout.Curve>
           <EdgeLayout.Labels>
-            <EdgeLabelCollection />
+            <mssgm:EdgeLabel
+              BoundingBox="0,0,0,0"
+              RelativePosition="Any" />
           </EdgeLayout.Labels>
         </EdgeLayout>
       </GraphLayout>
@@ -3581,15 +3817,15 @@ ORDER BY [ContractName]</property>
     design-time-name="Package\Staging\Operations\StgEmployees">
     <LayoutInfo>
       <GraphLayout
-        Capacity="4" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph" xmlns:mssgle="clr-namespace:Microsoft.SqlServer.Graph.LayoutEngine;assembly=Microsoft.SqlServer.Graph" xmlns:assembly="http://schemas.microsoft.com/winfx/2006/xaml">
-        <NodeLayout
-          Size="149,42"
-          Id="Package\Staging\Operations\StgEmployees\ODBC Source"
-          TopLeft="140,130" />
+        Capacity="4" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph" xmlns:mssgle="clr-namespace:Microsoft.SqlServer.Graph.LayoutEngine;assembly=Microsoft.SqlServer.Graph" xmlns:assembly="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:mssgm="clr-namespace:Microsoft.SqlServer.Graph.Model;assembly=Microsoft.SqlServer.Graph">
         <NodeLayout
           Size="169,42"
           Id="Package\Staging\Operations\StgEmployees\ODBC Destination"
           TopLeft="249,257" />
+        <NodeLayout
+          Size="149,42"
+          Id="Package\Staging\Operations\StgEmployees\ODBC Source"
+          TopLeft="140,130" />
         <EdgeLayout
           Id="Package\Staging\Operations\StgEmployees.Paths[ODBC Source Output]"
           TopLeft="214.5,172">
@@ -3621,7 +3857,9 @@ ORDER BY [ContractName]</property>
             </mssgle:Curve>
           </EdgeLayout.Curve>
           <EdgeLayout.Labels>
-            <EdgeLabelCollection />
+            <mssgm:EdgeLabel
+              BoundingBox="0,0,0,0"
+              RelativePosition="Any" />
           </EdgeLayout.Labels>
         </EdgeLayout>
       </GraphLayout>
