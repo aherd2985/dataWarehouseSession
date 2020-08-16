@@ -11,8 +11,8 @@
   DTS:LocaleID="1033"
   DTS:ObjectName="Package"
   DTS:PackageType="5"
-  DTS:VersionBuild="8"
-  DTS:VersionGUID="{7B7F0A66-FC56-40D8-82EE-AA63422C6DE4}">
+  DTS:VersionBuild="10"
+  DTS:VersionGUID="{E6946C09-4768-466E-8191-24B3A164A95B}">
   <DTS:Property
     DTS:Name="PackageFormatVersion">8</DTS:Property>
   <DTS:ConnectionManagers>
@@ -118,7 +118,7 @@
           DTS:LocaleID="-1"
           DTS:ObjectName="DimAorTypes"
           DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2019; © 2019 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
-          DTS:ThreadHint="0">
+          DTS:ThreadHint="1">
           <DTS:Variables />
           <DTS:ObjectData>
             <SQLTask:SqlTaskData
@@ -135,7 +135,7 @@
           DTS:LocaleID="-1"
           DTS:ObjectName="DimContract"
           DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2019; © 2019 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
-          DTS:ThreadHint="1">
+          DTS:ThreadHint="0">
           <DTS:Variables />
           <DTS:ObjectData>
             <SQLTask:SqlTaskData
@@ -173,48 +173,54 @@
       <DTS:Variables />
       <DTS:Executables>
         <DTS:Executable
-          DTS:refId="Package\Fact Tables\FactContractTools"
-          DTS:CreationName="Microsoft.Pipeline"
-          DTS:Description="Data Flow Task"
-          DTS:DTSID="{B242E44D-B064-48C8-9C52-A0F0D4356713}"
-          DTS:ExecutableType="Microsoft.Pipeline"
+          DTS:refId="Package\Fact Tables\FactContractTotals"
+          DTS:CreationName="Microsoft.ExecuteSQLTask"
+          DTS:Description="Execute SQL Task"
+          DTS:DTSID="{182A02DF-00A2-4B2E-ACA3-44487B6B8582}"
+          DTS:ExecutableType="Microsoft.ExecuteSQLTask"
           DTS:LocaleID="-1"
-          DTS:ObjectName="FactContractTools"
-          DTS:TaskContact="Performs high-performance data extraction, transformation and loading;Microsoft Corporation; Microsoft SQL Server; (C) Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1">
+          DTS:ObjectName="FactContractTotals"
+          DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2019; © 2019 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+          DTS:ThreadHint="0">
           <DTS:Variables />
           <DTS:ObjectData>
-            <pipeline
-              version="1" />
+            <SQLTask:SqlTaskData
+              SQLTask:Connection="{7DFFAE59-0EC2-448B-9475-8DB507F9C034}"
+              SQLTask:SqlStatementSource="WITH BilledCTE AS (&#xA;SELECT A.[DCnct_ID], SUM(B.BilledAmount) [BilledAmt], C.RM_ID&#xA;FROM Dim.Contract A LEFT JOIN&#xA;&#x9; Stg.Revenue B ON A.ActCnct_ID = B.ActCnct_ID LEFT JOIN&#xA;&#x9; Dim.ReportMth C ON B.ReportMth = C.ReportMth&#xA;GROUP BY A.[DCnct_ID], C.RM_ID&#xA;)&#xA;, CostCTE AS (&#xA;SELECT A.[DCnct_ID], SUM(B.CostAmount) [CostAmt], C.RM_ID&#xA;FROM Dim.Contract A LEFT JOIN&#xA;&#x9; Stg.Cost B ON A.ActCnct_ID = B.ActCnct_ID LEFT JOIN&#xA;&#x9; Dim.ReportMth C ON B.ReportMth = C.ReportMth&#xA;GROUP BY A.[DCnct_ID], C.RM_ID&#xA;)&#xA;, CntDt AS (&#xA;SELECT [DCnct_ID], RM_ID&#xA;FROM BilledCTE&#xA;UNION &#xA;SELECT [DCnct_ID], RM_ID&#xA;FROM CostCTE&#xA;)&#xA;&#xA;MERGE [Fact].[ContractTotals]AS TARGET&#xA;USING &#xA;( &#xA;&#x9;SELECT Q.DCnct_ID, A.[ContractName], COALESCE(B.[BilledAmt], 0) [BilledAmt]&#xA;&#x9;, COALESCE([CostAmt], 0) [CostAmt], COALESCE(B.RM_ID, C.RM_ID) [RM_ID]&#xA;&#x9;FROM CntDt Q JOIN&#xA;&#x9;&#x9; Dim.Contract A ON Q.[DCnct_ID] = A.[DCnct_ID] LEFT JOIN&#xA;&#x9;&#x9; BilledCTE  B ON Q.[DCnct_ID] = B.[DCnct_ID] AND Q.RM_ID = B.RM_ID LEFT JOIN&#xA;&#x9;&#x9; CostCTE  C ON Q.[DCnct_ID] = C.[DCnct_ID] AND Q.RM_ID = C.RM_ID&#xA;)AS SOURCE &#xA;ON (TARGET.[DCnct_ID] = SOURCE.[DCnct_ID] AND TARGET.[RM_ID] = SOURCE.[RM_ID]) &#xA;WHEN MATCHED AND TARGET.[BilledAmt] &lt;&gt; SOURCE.[BilledAmt] OR TARGET.[CostAmt] &lt;&gt; SOURCE.[CostAmt]&#xA;THEN UPDATE SET &#xA;  TARGET.[BilledAmt] = SOURCE.[BilledAmt]&#xA;, TARGET.[CostAmt] = SOURCE.[CostAmt]&#xA;WHEN NOT MATCHED BY TARGET &#xA;THEN INSERT ([DCnct_ID], [ContractName], [BilledAmt], [CostAmt], [RM_ID]) &#xA;VALUES (SOURCE.[DCnct_ID], SOURCE.[ContractName], SOURCE.[BilledAmt], SOURCE.[CostAmt], SOURCE.[RM_ID])&#xA;WHEN NOT MATCHED BY SOURCE &#xA;THEN DELETE &#xA;; " xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
           </DTS:ObjectData>
         </DTS:Executable>
         <DTS:Executable
           DTS:refId="Package\Fact Tables\FactContributionMargin"
-          DTS:CreationName="Microsoft.Pipeline"
-          DTS:Description="Data Flow Task"
-          DTS:DTSID="{49BD76E0-C1D0-4A9B-A4C6-A551FFA0DB7E}"
-          DTS:ExecutableType="Microsoft.Pipeline"
+          DTS:CreationName="Microsoft.ExecuteSQLTask"
+          DTS:Description="Execute SQL Task"
+          DTS:DTSID="{EE6FA9F6-F7C3-4F85-A0BB-3C7DD33B7688}"
+          DTS:ExecutableType="Microsoft.ExecuteSQLTask"
           DTS:LocaleID="-1"
           DTS:ObjectName="FactContributionMargin"
-          DTS:TaskContact="Performs high-performance data extraction, transformation and loading;Microsoft Corporation; Microsoft SQL Server; (C) Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1">
+          DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2019; © 2019 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+          DTS:ThreadHint="0">
           <DTS:Variables />
           <DTS:ObjectData>
-            <pipeline
-              version="1" />
+            <SQLTask:SqlTaskData
+              SQLTask:Connection="{7DFFAE59-0EC2-448B-9475-8DB507F9C034}"
+              SQLTask:SqlStatementSource="MERGE [Fact].ContributionMargin AS TARGET&#xA;USING (&#xA;&#x9;&#x9;SELECT A.DCnct_ID, A.ContractName, A.FCT_ID&#xA;&#x9;&#x9;&#x9; , A.BilledAmt BilledAmount, A.CostAmt CostAmount&#xA;&#x9;&#x9;&#x9; , B.FOA_ID SuperFOA_ID, B.DE_ID SuperIntendentID, B.EmployeeName SuperIntendentName&#xA;&#x9;&#x9;&#x9; , C.FOA_ID ProjFOA_ID, C.DE_ID ProjMgrID, C.EmployeeName ProjMgrName&#xA;&#x9;&#x9;&#x9; , A.RM_ID&#xA;&#x9; &#xA;&#x9;&#x9;FROM [Fact].[ContractTotals] A LEFT JOIN&#xA;&#x9;&#x9;&#x9; [Fact].OpsAOR B ON A.DCnct_ID = B.DCnct_ID AND B.DAT_ID = 1&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;AND A.RM_ID BETWEEN B.StartDtRM_ID AND COALESCE(B.EndDtRM_ID, A.RM_ID)&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;   LEFT JOIN&#xA;&#x9;&#x9;&#x9; [Fact].OpsAOR C ON A.DCnct_ID = C.DCnct_ID AND C.DAT_ID = 2&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;AND A.RM_ID BETWEEN C.StartDtRM_ID AND COALESCE(C.EndDtRM_ID, A.RM_ID)&#xA;&#xA;&#x9;  ) AS SOURCE&#xA;ON (TARGET.DCnct_ID = SOURCE.DCnct_ID AND TARGET.RM_ID = SOURCE.RM_ID) &#xA;WHEN MATCHED AND TARGET.ContractName &lt;&gt; SOURCE.ContractName OR TARGET.FCT_ID &lt;&gt; SOURCE.FCT_ID OR TARGET.BilledAmount &lt;&gt; SOURCE.BilledAmount&#xA; OR TARGET.CostAmount &lt;&gt; SOURCE.CostAmount OR TARGET.SuperFOA_ID &lt;&gt; SOURCE.SuperFOA_ID OR TARGET.SuperIntendentID &lt;&gt; SOURCE.SuperIntendentID&#xA;  OR TARGET.SuperIntendentName &lt;&gt; SOURCE.SuperIntendentName OR TARGET.ProjFOA_ID &lt;&gt; SOURCE.ProjFOA_ID OR TARGET.ProjMgrID &lt;&gt; SOURCE.ProjMgrID&#xA;   OR TARGET.ProjMgrName &lt;&gt; SOURCE.ProjMgrName&#xA;THEN UPDATE SET &#xA;  TARGET.ContractName = SOURCE.ContractName&#xA;, TARGET.FCT_ID = SOURCE.FCT_ID&#xA;, TARGET.BilledAmount = SOURCE.BilledAmount&#xA;, TARGET.CostAmount = SOURCE.CostAmount&#xA;, TARGET.SuperFOA_ID = SOURCE.SuperFOA_ID&#xA;, TARGET.SuperIntendentID = SOURCE.SuperIntendentID&#xA;, TARGET.SuperIntendentName = SOURCE.SuperIntendentName&#xA;, TARGET.ProjFOA_ID = SOURCE.ProjFOA_ID&#xA;, TARGET.ProjMgrID = SOURCE.ProjMgrID&#xA;, TARGET.ProjMgrName = SOURCE.ProjMgrName&#xA;WHEN NOT MATCHED BY TARGET &#xA;THEN INSERT (DCnct_ID, ContractName, FCT_ID, BilledAmount, CostAmount, SuperFOA_ID, SuperIntendentID, SuperIntendentName, ProjFOA_ID, ProjMgrID, ProjMgrName, RM_ID) &#xA;VALUES (SOURCE.DCnct_ID, SOURCE.ContractName, SOURCE.FCT_ID, SOURCE.BilledAmount, SOURCE.CostAmount, SOURCE.SuperFOA_ID, SOURCE.SuperIntendentID&#xA;&#x9;&#x9;, SOURCE.SuperIntendentName, SOURCE.ProjFOA_ID, SOURCE.ProjMgrID, SOURCE.ProjMgrName, SOURCE.RM_ID)&#xA;WHEN NOT MATCHED BY SOURCE &#xA;THEN DELETE;&#xA;" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
           </DTS:ObjectData>
         </DTS:Executable>
         <DTS:Executable
           DTS:refId="Package\Fact Tables\FactOpsAOR"
-          DTS:CreationName="Microsoft.Pipeline"
-          DTS:Description="Data Flow Task"
-          DTS:DTSID="{745FFDDE-FB28-43FA-B25E-BE2502882895}"
-          DTS:ExecutableType="Microsoft.Pipeline"
+          DTS:CreationName="Microsoft.ExecuteSQLTask"
+          DTS:Description="Execute SQL Task"
+          DTS:DTSID="{7902335A-4093-4F5A-AA84-09C049F60B72}"
+          DTS:ExecutableType="Microsoft.ExecuteSQLTask"
           DTS:LocaleID="-1"
           DTS:ObjectName="FactOpsAOR"
-          DTS:TaskContact="Performs high-performance data extraction, transformation and loading;Microsoft Corporation; Microsoft SQL Server; (C) Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1">
+          DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2019; © 2019 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+          DTS:ThreadHint="1">
           <DTS:Variables />
           <DTS:ObjectData>
-            <pipeline
-              version="1" />
+            <SQLTask:SqlTaskData
+              SQLTask:Connection="{7DFFAE59-0EC2-448B-9475-8DB507F9C034}"
+              SQLTask:SqlStatementSource="MERGE [Fact].OpsAOR AS TARGET&#xA;USING (&#xA;&#x9;&#x9;SELECT B.DCnct_ID, B.ContractName, C.DAT_ID&#xA;&#x9;&#x9;&#x9; , D.DE_ID, D.EmployeeName, E.RM_ID StartDtRM_ID, F.RM_ID EndDtRM_ID&#xA;&#x9;&#x9;FROM [Stg].OpsAOR A JOIN&#xA;&#x9;&#x9;&#x9; [Dim].[Contract] B ON A.OpsCnct_ID = B.OpsCnct_ID JOIN&#xA;&#x9;&#x9;&#x9; [Dim].[AOR_Type] C ON A.AT_ID = C.AT_ID JOIN&#xA;&#x9;&#x9;&#x9; [Dim].[Employees] D ON A.E_ID = D.E_ID JOIN&#xA;&#x9;&#x9;&#x9; [Dim].[ReportMth] E ON A.StartDt = E.ReportMth LEFT JOIN&#xA;&#x9;&#x9;&#x9; [Dim].[ReportMth] F ON A.EndDt = F.ReportMth&#xA;&#xA;&#x9;  ) AS SOURCE&#xA;ON (TARGET.DCnct_ID = SOURCE.DCnct_ID AND TARGET.DE_ID = SOURCE.DE_ID AND TARGET.DAT_ID = SOURCE.DAT_ID) &#xA;WHEN MATCHED AND TARGET.StartDtRM_ID &lt;&gt; SOURCE.StartDtRM_ID OR TARGET.EndDtRM_ID &lt;&gt; SOURCE.EndDtRM_ID&#xA;THEN UPDATE SET &#xA;  TARGET.StartDtRM_ID = SOURCE.StartDtRM_ID&#xA;, TARGET.EndDtRM_ID = SOURCE.EndDtRM_ID&#xA;WHEN NOT MATCHED BY TARGET &#xA;THEN INSERT (DCnct_ID, ContractName, DAT_ID, DE_ID, EmployeeName, StartDtRM_ID, EndDtRM_ID) &#xA;VALUES (SOURCE.DCnct_ID, SOURCE.ContractName, SOURCE.DAT_ID, SOURCE.DE_ID&#xA;&#x9;&#x9;, SOURCE.EmployeeName, SOURCE.StartDtRM_ID, SOURCE.EndDtRM_ID)&#xA;WHEN NOT MATCHED BY SOURCE &#xA;THEN DELETE;" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
           </DTS:ObjectData>
         </DTS:Executable>
       </DTS:Executables>
@@ -222,15 +228,15 @@
         <DTS:PrecedenceConstraint
           DTS:refId="Package\Fact Tables.PrecedenceConstraints[Constraint]"
           DTS:CreationName=""
-          DTS:DTSID="{EFE6D749-069F-4063-AF78-FBBBE8E3B9BA}"
-          DTS:From="Package\Fact Tables\FactContractTools"
+          DTS:DTSID="{53D8D1FD-C447-42DD-ADA3-9E678D46B77A}"
+          DTS:From="Package\Fact Tables\FactContractTotals"
           DTS:LogicalAnd="True"
           DTS:ObjectName="Constraint"
           DTS:To="Package\Fact Tables\FactContributionMargin" />
         <DTS:PrecedenceConstraint
           DTS:refId="Package\Fact Tables.PrecedenceConstraints[Constraint 1]"
           DTS:CreationName=""
-          DTS:DTSID="{1EB97EA2-7968-4237-BDA7-80DE00153845}"
+          DTS:DTSID="{245345A3-AFDC-413E-AB7C-53B843D20CAC}"
           DTS:From="Package\Fact Tables\FactOpsAOR"
           DTS:LogicalAnd="True"
           DTS:ObjectName="Constraint 1"
@@ -3219,43 +3225,43 @@ ORDER BY [ContractName]</property>
           </EdgeLayout.Labels>
         </EdgeLayout>
         <NodeLayout
-          Size="169,42"
-          Id="Package\Fact Tables\FactContractTools"
-          TopLeft="38,26" />
+          Size="172,42"
+          Id="Package\Fact Tables\FactContractTotals"
+          TopLeft="241,44" />
         <NodeLayout
           Size="144,42"
           Id="Package\Fact Tables\FactOpsAOR"
-          TopLeft="50,262" />
+          TopLeft="45,123" />
         <NodeLayout
           Size="194,42"
           Id="Package\Fact Tables\FactContributionMargin"
-          TopLeft="291,308" />
+          TopLeft="247,275" />
         <EdgeLayout
           Id="Package\Fact Tables.PrecedenceConstraints[Constraint]"
-          TopLeft="122.5,68">
+          TopLeft="327,86">
           <EdgeLayout.Curve>
             <mssgle:Curve
               StartConnector="{assembly:Null}"
-              EndConnector="265.5,240"
+              EndConnector="17,189"
               Start="0,0"
-              End="265.5,232.5">
+              End="17,181.5">
               <mssgle:Curve.Segments>
                 <mssgle:SegmentCollection
                   Capacity="5">
                   <mssgle:LineSegment
-                    End="0,116" />
+                    End="0,90.5" />
                   <mssgle:CubicBezierSegment
-                    Point1="0,116"
-                    Point2="0,120"
-                    Point3="4,120" />
+                    Point1="0,90.5"
+                    Point2="0,94.5"
+                    Point3="4,94.5" />
                   <mssgle:LineSegment
-                    End="261.5,120" />
+                    End="13,94.5" />
                   <mssgle:CubicBezierSegment
-                    Point1="261.5,120"
-                    Point2="265.5,120"
-                    Point3="265.5,124" />
+                    Point1="13,94.5"
+                    Point2="17,94.5"
+                    Point3="17,98.5" />
                   <mssgle:LineSegment
-                    End="265.5,232.5" />
+                    End="17,181.5" />
                 </mssgle:SegmentCollection>
               </mssgle:Curve.Segments>
             </mssgle:Curve>
@@ -3266,30 +3272,30 @@ ORDER BY [ContractName]</property>
         </EdgeLayout>
         <EdgeLayout
           Id="Package\Fact Tables.PrecedenceConstraints[Constraint 1]"
-          TopLeft="194,283">
+          TopLeft="117,165">
           <EdgeLayout.Curve>
             <mssgle:Curve
               StartConnector="{assembly:Null}"
-              EndConnector="97,46"
+              EndConnector="196,110"
               Start="0,0"
-              End="89.5,46">
+              End="196,102.5">
               <mssgle:Curve.Segments>
                 <mssgle:SegmentCollection
                   Capacity="5">
                   <mssgle:LineSegment
-                    End="44.5,0" />
+                    End="0,61.4601226993865" />
                   <mssgle:CubicBezierSegment
-                    Point1="44.5,0"
-                    Point2="48.5,0"
-                    Point3="48.5,4" />
+                    Point1="0,61.4601226993865"
+                    Point2="0,65.4601226993865"
+                    Point3="4,65.4601226993865" />
                   <mssgle:LineSegment
-                    End="48.5,42" />
+                    End="192,65.4601226993865" />
                   <mssgle:CubicBezierSegment
-                    Point1="48.5,42"
-                    Point2="48.5,46"
-                    Point3="52.5,46" />
+                    Point1="192,65.4601226993865"
+                    Point2="196,65.4601226993865"
+                    Point3="196,69.4601226993865" />
                   <mssgle:LineSegment
-                    End="89.5,46" />
+                    End="196,102.5" />
                 </mssgle:SegmentCollection>
               </mssgle:Curve.Segments>
             </mssgle:Curve>

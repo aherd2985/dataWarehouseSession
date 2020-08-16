@@ -72,19 +72,3 @@ CREATE TABLE Stg.OpsAOR
   PRIMARY KEY (OA_ID)
 );
 GO
-
-CREATE TABLE Fact.ContributionMargin
-(
-  CM_ID INT IDENTITY(1,1) NOT NULL,
-  BilledAmount decimal(10,2) NOT NULL,
-  CostAmount decimal(10,2) NOT NULL,
-  DwCnct_ID INT NOT NULL,
-  ContractName varchar(50),
-  SuperIntendentID INT NOT NULL,
-  SuperIntendentName varchar(250),
-  ProjMgrID INT NOT NULL,
-  ProjMgrName varchar(250),
-  [ReportMth] date NOT NULL,
-  PRIMARY KEY (CM_ID)
-);
-GO
